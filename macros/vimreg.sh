@@ -8,6 +8,16 @@ vimreg() {
     echo 'error: you are running vimreg outside vim terminal' >&2
     return 2
   fi
+  local get=false
+  local reg='"'
+  local tee=false
+  case "$1" in
+    --get|-g) get=true; shift ;;
+    --list|-l) get=true; reg='--list'; shift ;;
+    --tee|-t) tee=true; shift ;;
+    *) ;;
+  esac
+  [ "${reg}" != '--list' ] && [ $# -gt 0 ] && reg=$1
 }
 
 __call_tapi_reg() {
