@@ -8,6 +8,7 @@ vimreg() {
     echo 'error: you are running vimreg outside vim terminal' >&2
     return 2
   fi
+  
   local get=false
   local reg='"'
   local tee=false
@@ -18,6 +19,23 @@ vimreg() {
     *) ;;
   esac
   [ "${reg}" != '--list' ] && [ $# -gt 0 ] && reg=$1
+  
+  local file
+  file=$(mktemp -u)
+  # shellcheck disable=SC2064
+  trap "rm -f '${file}'" EXIT INT TERM
+  if ${get}; then
+    mkfifo "${file}"
+    __call_tapi_reg get "${reg}" "${file}"
+    cat "${file}"
+  else
+    if ${tee}; then
+      tee "${file}"
+    else
+      cat >"${file}"
+    fi
+    __call_tapi_reg set "${reg}" "${file}"
+  fi
 }
 
 __call_tapi_reg() {
