@@ -8,18 +8,28 @@ vimreg() {
     echo 'error: you are running vimreg outside vim terminal' >&2
     return 2
   fi
-  
+
   local get=false
   local reg='"'
   local tee=false
   case "$1" in
-    --get|-g) get=true; shift ;;
-    --list|-l) get=true; reg='--list'; shift ;;
-    --tee|-t) tee=true; shift ;;
-    *) ;;
+  --get | -g)
+    get=true
+    shift
+    ;;
+  --list | -l)
+    get=true
+    reg='--list'
+    shift
+    ;;
+  --tee | -t)
+    tee=true
+    shift
+    ;;
+  *) ;;
   esac
   [ "${reg}" != '--list' ] && [ $# -gt 0 ] && reg=$1
-  
+
   local file
   file=$(mktemp -u)
   # shellcheck disable=SC2064
@@ -46,7 +56,7 @@ __call_tapi_reg() {
   # -R 表示原始输入模式，直接处理原始输入
   # --slurp 将所有输入合并为一个数组
   # . 表示输入的原始内容
-  cmd=$(echo  -n "$1" | jq -R --slurp .)
+  cmd=$(echo -n "$1" | jq -R --slurp .)
   arg1=$(echo -n "$2" | jq -R --slurp .)
   arg2=$(echo -n "$3" | jq -R --slurp .)
   # \e]51; 这是一个控制字符序列，表示终端的自定义控制序列
