@@ -12,9 +12,10 @@ let s:save_cpo = &cpo
 " 将 cpoptions 的值重置为 Vim 的默认值。
 set cpo&vim
 
+" 自动加载 VIMREG 中的内容到 " 寄存器
 function! LoadVimRegToUnnamedRegister() abort
-  " 获取环境变量 VIMREG 指定的文件路径
-  let vimreg_file = getenv('VIMREG')
+  " 获取环境变量 CLIP 指定的文件路径
+  let vimreg_file = getenv('CLIP')
   if vimreg_file == ''
     echo 'VIMREG environment variable is not set.'
     return
@@ -32,6 +33,32 @@ endfunction
 
 " 每次启动 Vim 时将 VIMREG 环境变量指定的文件内容加载到无名寄存器 "
 autocmd VimEnter * call LoadVimRegToUnnamedRegister()
+
+" 定义全局变量来保存寄存器的初始内容
+let g:last_register_content = getreg('"')
+
+" 监听 'registers' 命令来检测寄存器变化
+function! WriteRegisterToFile() abort
+  " 获取寄存器 " 的当前内容
+  let current_content = getreg('"')
+
+  " 检查寄存器的内容是否变化
+  if current_content != g:last_register_content
+    " 将内容写入指定的文件
+    let vimreg_file = getenv('CLIP')
+    call writefile([current_content], vimreg_file)
+
+    " 更新记录的内容
+    let g:last_register_content = current_content
+    echo '寄存器 " 的内容已更新，并写入到文件中'
+  endif
+endfunction
+
+" 设置一个定时器来定期检查寄存器的变化
+" 每秒检查一次
+set updatetime=1000  " 设置为 1 秒
+autocmd CursorHold,CursorHoldI * call WriteRegisterToFile()
+
 
 
 function! Tapi_reg(bufnr, args) abort
@@ -59,7 +86,7 @@ function! Tapi_reg(bufnr, args) abort
   endif
 endfunction
 
-" 调用系统剪贴板 macOS WSL
+" Use the system Clipboard (macOS or WSL )
 function! s:set_clipboard(reg, file) abort
   if (a:reg ==# '+' || a:reg ==# '*') && !has('clipboard')
     let cmd = s:is_wsl() ? 'clip.exe' : has('macunix') ? 'pbcopy' : ''
