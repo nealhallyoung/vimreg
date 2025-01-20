@@ -24,7 +24,7 @@ function! LoadVimRegToUnnamedRegister() abort
   " 检查文件是否存在
   if filereadable(vimreg_file)
     " 读取文件的内容并将其加载到无名寄存器 "
-    let file_content = join(readfile(vimreg_file), "\n")
+    let file_content = readfile(vimreg_file)
     call setreg('"', file_content)
   else
     echo 'No VIMREG file found at ' . vimreg_file
@@ -36,7 +36,6 @@ autocmd VimEnter * call LoadVimRegToUnnamedRegister()
 
 " 定义全局变量来保存寄存器的初始内容
 let g:last_register_content = getreg('"')
-
 " 监听 'registers' 命令来检测寄存器变化
 function! WriteRegisterToFile() abort
   " 获取寄存器 " 的当前内容
@@ -46,7 +45,10 @@ function! WriteRegisterToFile() abort
   if current_content != g:last_register_content
     " 将内容写入指定的文件
     let vimreg_file = getenv('CLIP')
-    call writefile([current_content], vimreg_file)
+    " 确保写入文件的内容是按行存储的列表
+    let content_lines = split(current_content, "\n")
+    call writefile(content_lines, vimreg_file)
+    " call writefile([current_content], vimreg_file)
 
     " 更新记录的内容
     let g:last_register_content = current_content
@@ -86,7 +88,7 @@ function! Tapi_reg(bufnr, args) abort
   endif
 endfunction
 
-" Use the system Clipboard (macOS or WSL )
+" 调用系统剪贴板 macOS WSL
 function! s:set_clipboard(reg, file) abort
   if (a:reg ==# '+' || a:reg ==# '*') && !has('clipboard')
     let cmd = s:is_wsl() ? 'clip.exe' : has('macunix') ? 'pbcopy' : ''
