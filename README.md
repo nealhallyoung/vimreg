@@ -1,27 +1,79 @@
 # vimreg
 
-Seamless vim register manipulation in :terminal via terminal-api
-
 # Install
 
-* Install [`jq`](https://stedolan.github.io/jq/) command
-* Create `~/.vimreg`
-* Add `vimreg.sh` and `.vimreg` in your `.bashrc`
+## Server
 
+- Install [`jq`](https://stedolan.github.io/jq/) command
+- git clone repo
+    ```
+    git clone https://github.com/nealhallyoung/vimreg.git
+    ```
+- Add `vimreg.sh` and `.clip` in your `.bashrc`
     ```
     # absolute path
-    source <this repo>/macros/vimreg.sh
-    export VIMREG=~/.vimreg
+    source /path/to/vimreg.sh
+    export CLIP=/path/to/.clip
+    ```
+- Create `~/.clip`
+    ```
+    touch ~/.clip
+    ```
+- Setup vim config `~/vimrc`
+    ```
+    set encoding=utf-8         
+    set fileencodings=utf-8    
+    set fileencoding=utf-8     
+    ```
+- Add `tapi_reg.vim` and `vimreg.sh`
+    ```
+    cp plugin/tapi_reg.vim  ~/.vim/plugin
+    # You can specify the path
+    cp macros/vimreg.sh ~/.scripts
+    ```
+- Setup ssh config `/etc/ssh/sshd_config`
+    ```
+    # enable ssh ENV feature
+    ermitUserEnvironment yes
+    ```
+- Create `~/.ssh/environment`
+    ```
+    vimreg=/home/hall/.clip
     ```
 
-# Usage
-# Linux 
+## Client
 
+It is recommended to use a public key for SSH login. 
+This saves you from having to type many commands.
+
+- reference [how-to-use-ssh-with-a-given-public-key](https://superuser.com/questions/543405/how-to-use-ssh-with-a-given-public-key)
+- Setup ssh config `~/.ssh/config`
+
+    ```
+    # Let's say your server ip is 192.168.3.145, username is hall
+    Host dev
+        HostName 192.168.3.145
+        User hall
+        Port 22
+        IdentityFile /Users/hall/.ssh/remote
+    ```
+- Then you can login server 
+    ```
+    ssh dev
+    ```
+# Usage 
+
+## Server
+### `vimreg`
+`vimreg` cmd only used on vim terminal mode.
 
 ```
 # Enter vim terminal mode
 :terminal
+```
 
+Setup register.
+```
 # unnamed register
 $ echo 'send this text to vim register!' | vimreg
 
@@ -29,39 +81,17 @@ $ echo 'send this text to vim register!' | vimreg
 $ echo 'send this text to register a!' | vimreg a
 ```
 
-You can use `vimreg` as `tee` command using `--tee` (`-t`) option.
-It uses `tee` instead of `cat` to receive standard input.
-
-```
-$ vm_stat -c 10 1 | vimreg -t
-```
-
-Note that `vimreg` sends request(s) to vim **after standard input is fully
-received (it doesn't append input to vim register incrementally).**
-That means, if Ctrl-C was pressed before standard input was closed, vimreg
-doesn't sets vim register.
-
-```
-$ while :; do echo 'something heavy task ...'; sleep 1; done | vimreg -t
-something heavy task ...
-something heavy task ...
-something heavy task ...
-^C
-$ # vim register is not updated here!
-```
-
-`vimreg` supports `--get` or `-g` option.
-It shows given vim register's content to output.
-If a register name was not given, the default register name is `"` (unnamed register).
+Get register. `vimreg` supports `--get` or `-g` option.
 
 ```
 $ vimreg -g
 Hello this is vim unnamed register content.
-$ vimreg -g a
+$ vimreg -get a
 this is "a" register content.
 ```
 
-And also it can list all vim register contents (same as `:registers` output).
+
+List all vim register contents.
 
 ```
 $ vimreg -l
@@ -87,6 +117,52 @@ $ vimreg -l
 "/   --list
 ```
 
+Use `vimreg` as the `tee` command.
+
+```
+#  `--tee` (`-t`) 
+$ ping google.com | vimreg -t
+```
+
+Note that `vimreg` sends request(s) to vim **after standard input is fully
+received (it doesn't append input to vim register incrementally).**
+That means, if Ctrl-C was pressed before standard input was closed, vimreg
+doesn't sets vim register.
+
+```
+$ while :; do echo 'something heavy task ...'; sleep 1; done | vimreg -t
+something heavy task ...
+something heavy task ...
+something heavy task ...
+^C
+$ # vim register is not updated here!
+```
+
+
+
+### `clip`
+
+```
+# Set clip
+echo "Hello" > clip
+# Get clip 
+clip
+Hello 
+```
+
+# Client
+
+```
+# Get clip
+ssh dev 'cat > $vimreg' < text.txt
+# Set clip
+ssh dev 
+ssh cn_gd_tencent 'cat $vimreg'
+Hello
+```
+
+You can wrapper these cmd to simplfy work.
+
 # WSL and macOS (experimental)
 
 In Windows Subsystem Linux environment, even if `has('clipboard') == 0`, you can use clipboard registers (`+` or `*`)
@@ -103,3 +179,7 @@ $
 ```
 
 NOTE: if your vim returns `1` for `:echo has('clipboard')`, `vimreg` can also manipulate clipboard registers as usual.
+
+# FQA
+
+[vscode-remote-ssh-extension-tmux-bash-vsc-prompt-cmd-original-command-n](https://stackoverflow.com/questions/73421978/vscode-remote-ssh-extension-tmux-bash-vsc-prompt-cmd-original-command-n)
