@@ -1,5 +1,13 @@
 # vimreg
 
+**vimreg** attempts to solve the synchronization problem between Vim registers, the server's system clipboard, and the client clipboard.
+
+Many Linux servers lack an X11 environment, which means they do not have access to the system clipboard.
+
+- **vimreg** uses a `.clip` file to simulate clipboard functionality.
+- **tapi_reg.vim** synchronizes the `.clip` file and the Vim `"` registers each time Vim is started, and writes the contents to the `.clip` file when `"` change.
+- **vimreg.sh** provides operations for interacting with the `.clip` file, while the **vimreg** process manages Vim's registers.
+
 # Install
 
 ## Server
