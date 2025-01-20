@@ -5,7 +5,7 @@
 ## Server
 
 - Install [`jq`](https://stedolan.github.io/jq/) command
-- git clone repo
+- Git clone repo
     ```
     git clone https://github.com/nealhallyoung/vimreg.git
     ```
@@ -62,9 +62,9 @@ This saves you from having to type many commands.
     ssh dev
     ```
 # Usage 
-
 ## Server
 ### `vimreg`
+
 `vimreg` cmd only used on vim terminal mode.
 
 ```
@@ -137,8 +137,6 @@ something heavy task ...
 ^C
 $ # vim register is not updated here!
 ```
-
-
 
 ### `clip`
 
